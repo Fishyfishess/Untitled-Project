@@ -6,18 +6,22 @@
 //
 
 import SwiftUI
-
-@Observable
+import SwiftData
+//@Observable
+@Model
 class appData{
     static var shared = appData()
     private init(){
     }
     var toDoList: [Homework] = []
-    var subjects : [String : Subject] = ["English": Subject(), "Math" : Subject(), "Computer cience" : Subject(), "Science" : Subject(), "Social science" : Subject()]
+    var subjects : [Subject] = [Subject(subject: "English"), Subject(subject: "Math"), Subject(subject: "Computer science"), Subject(subject: "Science"), Subject(subject: "Social science")]
+    var saved = false
 }
 
 struct ContentView: View {
     @State var dailyQuotes: [String] = ["hey"]
+    @Environment(\.modelContext) var context
+    @Query var Data: [appData]
     var body: some View {
         NavigationStack{
                 TabView {
@@ -42,6 +46,12 @@ struct ContentView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 20))
                         }
                         .padding()
+                        .onAppear{
+                            if !appData.shared.saved {
+                                context.insert(appData.shared)
+                                appData.shared.saved = true
+                            }
+                        }
                     }
                     Tab("Add", systemImage: "plus") {
                         addHomeworkView()

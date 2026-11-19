@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
-
+import SwiftData
 struct uploadHomeworkView: View {
+    @Environment(\.modelContext) var context
     @State var selectedSubject = "--"
     @State var selectedHomeworkType = "--"
     @State var selectedDueDate = Date.now
@@ -210,12 +211,15 @@ struct uploadHomeworkView: View {
                         let tempDifficulty = Int(selectedPersonalDifficulty) ?? -1
                         if tempRating != -1 && tempDifficulty != -1 {
                             let temp = Homework(homeworkType: selectedHomeworkType, homeworkName: homeworkName, homeworkRating: tempRating, homeworkDifficulty: tempDifficulty, subject: selectedSubject, dueDate: selectedDueDate, timeSpent: x)
-                            print(selectedSubject)
-                            if let a = appData.shared.subjects[selectedSubject]{
-                                a.homework.append(temp)
-                            }
-                            print("success?")
                             
+                            for i in 0..<appData.shared.subjects.count {
+                                if appData.shared.subjects[i].subject == temp.subject{
+                                    appData.shared.subjects[i].homework.append(temp)
+                                }
+                            }
+                            
+                            print("success?")
+                            try? context.save()
                             selectedSubject = "--"
                             selectedHomeworkType = "--"
                             selectedDueDate = Date.now
@@ -239,13 +243,15 @@ struct uploadHomeworkView: View {
                 let temp2 = Homework(homeworkType: "Essay", homeworkName: "essay ahh", homeworkRating: 3, homeworkDifficulty: 3, subject: "English", dueDate: selectedDueDate, timeSpent: 50)
                 let temp3 = Homework(homeworkType: "Essay", homeworkName: "essay ahh", homeworkRating: 2, homeworkDifficulty: 2, subject: "English", dueDate: selectedDueDate, timeSpent: 50)
                 let temp4 = Homework(homeworkType: "Essay", homeworkName: "essay ahh", homeworkRating: 1, homeworkDifficulty: 1, subject: "English", dueDate: selectedDueDate, timeSpent: 40)
-                if let a = appData.shared.subjects["English"]{
-                    a.homework.append(temp)
-                    a.homework.append(temp1)
-                    a.homework.append(temp2)
-                    a.homework.append(temp3)
-                    a.homework.append(temp4)
-
+                
+                for i in 0..<appData.shared.subjects.count {
+                    if appData.shared.subjects[i].subject == "English"{
+                        appData.shared.subjects[i].homework.append(temp)
+                        appData.shared.subjects[i].homework.append(temp1)
+                        appData.shared.subjects[i].homework.append(temp2)
+                        appData.shared.subjects[i].homework.append(temp3)
+                        appData.shared.subjects[i].homework.append(temp4)
+                    }
                 }
             }
         }

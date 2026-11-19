@@ -7,9 +7,10 @@
 
 import SwiftUI
 import Foundation
-
+import SwiftData
 struct HomeworkDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) var context
     @State var homework : Homework
     @State var thisRating = "--"
     @State var thisDifficulty = "--"
@@ -17,10 +18,11 @@ struct HomeworkDetailView: View {
     @State var submit = false
     @State var intPlsAlert = false
     @State var plsEnterAllFields = false
+    
+    @State var rating = -1.0
+    @State var difficulty = -1.0
+    @State var timeSpent = -1.0
     var body: some View {
-        @State var rating = appData.shared.subjects[homework.subject]?.analyzeRating(homeworkType: homework.homeworkType)
-        @State var difficulty = appData.shared.subjects[homework.subject]?.analyzeDifficulty(homeworkType: homework.homeworkType)
-        @State var timeSpent = appData.shared.subjects[homework.subject]?.analyzeTimeSpent(homeworkType: homework.homeworkType)
         NavigationStack{
             VStack{
                 Text("\(homework.homeworkName) (\(homework.homeworkType))")
@@ -39,11 +41,11 @@ struct HomeworkDetailView: View {
                         .font(.custom("Georgia", size: 20, relativeTo: .headline))
                         .multilineTextAlignment(.center)
                 } else {
-                    Text("Average personal rating: \((rating ?? -1).formatted(.number.precision(.fractionLength(2))))")
+                    Text("Average personal rating: \((rating).formatted(.number.precision(.fractionLength(2))))")
                         .font(.custom("Georgia", size: 20, relativeTo: .headline))
-                    Text("Average personal difficulty: \((difficulty ?? -1).formatted(.number.precision(.fractionLength(2))))")
+                    Text("Average personal difficulty: \((difficulty).formatted(.number.precision(.fractionLength(2))))")
                         .font(.custom("Georgia", size: 20, relativeTo: .headline))
-                    Text("Average  time spent: \((timeSpent ?? -1).formatted(.number.precision(.fractionLength(2))))")
+                    Text("Average  time spent: \((timeSpent).formatted(.number.precision(.fractionLength(2))))")
                         .font(.custom("Georgia", size: 20, relativeTo: .headline))
                 }
                 Spacer()
@@ -128,15 +130,17 @@ struct HomeworkDetailView: View {
                                         homework.homeworkDifficulty = y
                                     }
                                     homework.timeSpent = z
-                                    if let a = appData.shared.subjects[homework.subject]{
-                                        a.homework.append(homework)
-                                        print("success?")
+                                    for i in 0..<appData.shared.subjects.count {
+                                        if appData.shared.subjects[i].subject == homework.subject{
+                                            appData.shared.subjects[i].homework.append(homework)
+                                        }
                                     }
                                     for i in 0..<appData.shared.toDoList.count{
                                         if appData.shared.toDoList[i].uid == homework.uid {
                                             appData.shared.toDoList.remove(at: i)
                                         }
                                     }
+                                    try? context.save()
                                     dismiss()
                                 } else {
                                     intPlsAlert.toggle()
@@ -187,6 +191,15 @@ struct HomeworkDetailView: View {
             }
             .alert("Please fill out every field", isPresented: $plsEnterAllFields){
                 
+            }
+            .onAppear {
+                for i in 0..<appData.shared.subjects.count{
+                    if appData.shared.subjects[i].subject == homework.subject{
+                        rating = appData.shared.subjects[i].analyzeRating(homeworkType: homework.homeworkType)
+                        difficulty = appData.shared.subjects[i].analyzeDifficulty(homeworkType: homework.homeworkType)
+                        timeSpent = appData.shared.subjects[i].analyzeTimeSpent(homeworkType: homework.homeworkType)
+                    }
+                }
             }
         }
     }

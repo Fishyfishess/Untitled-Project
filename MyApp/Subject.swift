@@ -8,15 +8,29 @@
 import Foundation
 import SwiftData
 
-class Subject{
+@Observable
+class Subject: Codable{
     //make multiple subjects, one for each subject
     //stores all of the different homeworks, for this subject
     var homework : [Homework] = []
+    var subject : String
     //each row is one type of homework
-    var data : [String : Int] = [:]
+    //var data : [String : Int] = [:]
     //dictionary that records the homework type and its index
     //var homeworkType: [String:Int] = ["English": 0, "Math": 1, "Science": 2, "Social science": 3, "Computer science": 4]
-    init() {
+    init(subject: String) {
+        self.subject = subject
+    }
+    
+    enum CodingKeys: String, CodingKey{
+        case homework = "_homework"
+        case subject = "_subject"
+    }
+    
+    func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(homework, forKey: .homework)
+        try container.encode(subject, forKey: .subject)
     }
     
     func analyzeRating(homeworkType: String) -> Double {
@@ -59,5 +73,11 @@ class Subject{
         } else {
             return 0
         }
+    }
+    
+    required init(from decoder:Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.homework = try container.decode([Homework].self, forKey: .homework)
+        self.subject = try container.decode(String.self, forKey: .subject)
     }
 }
